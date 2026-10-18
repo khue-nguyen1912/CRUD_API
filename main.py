@@ -7,6 +7,10 @@ class TaskCreate(BaseModel):
     title: str
     done: bool = False
 
+class TaskUpdate(BaseModel):
+    title: str | None = None
+    done: bool | None = None
+
 # Initialize the FastAPI app
 app = FastAPI(
     name="Task API",
@@ -54,6 +58,35 @@ def create_task(task_data: TaskCreate):
     }
     tasks.append(new_task)
     return new_task
+
+#STAGE 4: Update & Delete a Task
+@app.put("/tasks/{id}")
+def update_task(id: int, task_data: TaskUpdate):
+    task = next((task for task in tasks if task["id"] == id), None)
+    if not task:
+        return JSONResponse(status_code=404, content={"error": f"Unknown ID"})
+    if task_data.title is None and task_data.done is None:
+        return JSONResponse(status_code=400, content={"error": "Empty body"})
+
+    if task_data.title is not None:
+        if not task_data.title.strip():
+            return JSONResponse(status_code=400, content={"error": "Title cannot be empty"})
+        task["title"] = task_data.title.strip()
+
+    if task_data.done is not None:
+        task["done"] = task_data.done
+
+    return task
+
+@app.delete("/tasks/{id}")
+def delete_task(id: int):
+    task = next((task for task in tasks if task["id"] == id), None)
+    if not task:
+        return JSONResponse(status_code=404, content={"error": f"Unknown ID"})
+    tasks.remove(task)
+    return JSONResponse(status_code=204, content={"message": "No Content"})
+
+
 
     
 
