@@ -11,6 +11,9 @@ A lightweight RESTful API built with FastAPI to manage a simple task list with f
 * Update Tasks: Modify task titles or mark tasks as completed (done).
 * Delete Tasks: Remove tasks by ID.
 * Validation: Input validation and error handling (400 Bad Request, 404 Not Found).
+* Stats: Get how many tasks, how many done and how many open
+* Filter: Get task by status or name
+* Reset: Reset the task list to intial 3
 
 ---
 
