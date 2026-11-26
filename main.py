@@ -1,7 +1,11 @@
+import sqlite3
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+# ---------- Models ----------
 # Define the Pydantic model for the task
 class TaskCreate(BaseModel):
     title: str
@@ -18,12 +22,32 @@ app = FastAPI(
     description="A simple CRUD API built for Week 2 assignment."
 )
 
-# STAGE 2: In-memory Database
-tasks = [
-    {"id": 1, "title": "Learn FastAPI basics", "done": True},
-    {"id": 2, "title": "Build a CRUD API", "done": False},
-    {"id": 3, "title": "Master status codes", "done": False}
+# STAGE 2: Initialize Database
+DB_FILE = Path(__file__).parent / "tasks.db"
+SEED_TASKS = [
+    { "title": "Learn FastAPI basics", "done": True},
+    { "title": "Build a CRUD API", "done": False},
+    {"title": "Master status codes", "done": False}
 ]
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            done BOOLEAN NOT NULL DEFAULT 0
+        )"""
+    )
+    count = conn.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
+    if count == 0:
+        rows = [(task["title"], int(task["done"])) for task in SEED_TASKS]
+        conn.executemany("INSERT INTO tasks (title, done) VALUES (:title, :done)", rows)
+    conn.commit()
+    conn.close()
+
+init_db()
+
 
 # STAGE 0 & 1: Root & Health Endpoints
 @app.get("/")
